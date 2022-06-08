@@ -28,7 +28,9 @@ Within ```express_backend```
 - cors
 - bodyParser
 - path
+- dotenv
 
+Note that you can install these using ```npm install package.json``` in the respective directories.
 # Running the Stack
 ## The Front-End
 From the ```react-app``` directory, 

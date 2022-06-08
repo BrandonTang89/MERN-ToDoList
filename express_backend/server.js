@@ -6,11 +6,13 @@ const mongoose = require("mongoose");
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const path = require('path');
-const jsonParser = bodyParser.json()
+require('dotenv').config({ path: '../.env' });
+const jsonParser = bodyParser.json();
 // mongoose.set('debug', true);
 
 // High Level Variables
-const db_url = "mongodb://localhost:27017/ToDoDB";
+// const db_url = "mongodb://localhost:27017/ToDoDB";
+const db_url = process.env.DB_URL;
 const port = 2000;
 
 // Connect to DB
