@@ -1,12 +1,14 @@
 import React, { useEffect, useState, useReducer } from 'react';
 import { Helmet } from "react-helmet";
-import { Label, Table, Segment, Modal, Header, Form, TextArea, Dropdown, Button, Icon, Divider, Checkbox, Search } from 'semantic-ui-react';
+import { Label, Table, Segment, Modal, Header, Form, TextArea, Dropdown, Button, Icon, Divider, Checkbox, Search, Grid, Message } from 'semantic-ui-react';
 import _ from 'lodash';
 import 'semantic-ui-css/semantic.min.css'
 import './App.css';
 
-interface searchBoxRep { index: number, title: string, description: string, tags: Array<string>, taskStatus: string };
-interface taskRowRep { index: number, name: string, desc: string, tags: Array<string>, taskStatus: string }
+const backend_uri = "http://localhost:3000/";
+
+interface searchBoxRep { _id: string, title: string, description: string, tags: Array<string>, taskStatus: string };
+interface taskRowRep { _id: string, name: string, desc: string, tags: Array<string>, taskStatus: string }
 const statuses = [{ key: "Not Started", text: "Not Started", value: "Not Started" },
 { key: "In Progress", text: "In Progress", value: "In Progress" },
 { key: "Completed", text: "Completed", value: "Completed" }];
@@ -39,50 +41,180 @@ const TagDropDown = (props: { tagSet: Array<string>, onChange: any, currentTags:
     />
   );
 }
+const TaskRow = (props: { taskInfo: taskRowRep, tagSet: Array<string>, refreshCallback: any, isCreate: boolean }) => {
 
-const TaskRow = (props: { taskInfo: taskRowRep, tagSet: Array<string> }) => {
   const [open, setOpen] = useState<boolean>(false);
   const [taskName, setTaskName] = useState<string>(props.taskInfo.name);
   const [taskDesc, setTaskDesc] = useState<string>(props.taskInfo.desc);
   const [tags, setTags] = useState<Array<string>>(props.taskInfo.tags);
   const [taskStatus, setTaskStatus] = useState<string>(props.taskInfo.taskStatus);
   const handleTagsChange = (tags: Array<string>) => { setTags(tags); }
+
+  const [isError, setIsError] = useState<boolean>(false);
+
+  let trigger_element = (!props.isCreate) ?
+    <Table.Row key={props.taskInfo._id}>
+      <Table.Cell>{props.taskInfo.name}</Table.Cell>
+      <Table.Cell>{props.taskInfo.desc}</Table.Cell>
+      <Table.Cell>
+        <div style={{ display: "flex", flexWrap: "wrap" }}>
+          {props.taskInfo.tags.map((tag) =>
+            <div style={{ padding: 2 }}>
+              <Label color="blue" tag>{tag}</Label>
+            </div>
+          )}
+        </div>
+      </Table.Cell>
+      <Table.Cell>
+        {
+          (props.taskInfo.taskStatus === 'Not Started') ?
+            <Label color="red">{props.taskInfo.taskStatus}</Label>
+            : (props.taskInfo.taskStatus === 'In Progress') ?
+              <Label color="orange">{props.taskInfo.taskStatus}</Label>
+              :
+              <Label color="green">{props.taskInfo.taskStatus}</Label>
+        }
+      </Table.Cell>
+    </Table.Row>
+    : <Button icon size='huge' labelPosition='left'>
+      <Icon name='plus circle'></Icon>Add
+    </Button>;
+
+  const modalHeader = (props.isCreate) ? "Add New Task" : "Edit Task";
+  const modalContentHeader = (props.isCreate) ? null : <Header>Editing Task: {props.taskInfo.name}</Header>;
+
+  const modalActions = (props.isCreate) ?
+    <>
+      <Button onClick={() => {
+        setOpen(false);
+        setTaskName(props.taskInfo.name);
+        setTaskDesc(props.taskInfo.desc);
+        setTags(props.taskInfo.tags);
+        setTaskStatus(props.taskInfo.taskStatus);
+      }}>Cancel</Button>
+
+      <Button color='green' onClick={() => {
+        if (taskName === "") {
+          setIsError(true);
+          return;
+        }
+
+        setIsError(false);
+        console.log("Adding Task", taskName);
+        fetch(backend_uri + "createtask", {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            name: taskName,
+            desc: taskDesc,
+            tags: tags,
+            taskStatus: taskStatus
+          })
+        })
+          .then(res => {
+            if (res.ok) {
+              console.log("Task Added");
+              setOpen(false);
+              props.refreshCallback();
+              // Reset the form
+              setTaskName(props.taskInfo.name);
+              setTaskDesc(props.taskInfo.desc);
+              setTags(props.taskInfo.tags);
+              setTaskStatus(props.taskInfo.taskStatus);
+            }
+            else {
+              console.log("Task Addition Failed");
+            }
+          });
+      }}>
+        <Icon name='checkmark' /> Save
+      </Button>
+    </>
+    :
+    <>
+      <Button.Group floated="left">
+        <Button negative onClick={() => {
+          console.log("Deleting Task", taskName);
+          fetch(backend_uri + "deletetask", {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              _id: props.taskInfo._id,
+            })
+          })
+            .then(res => {
+              if (res.ok) {
+                console.log("Task Deleted");
+                setOpen(false);
+                props.refreshCallback();
+              }
+              else {
+                console.log("Task Delete Failed");
+              }
+            });
+        }}>Delete Task</Button>
+      </Button.Group>
+
+      <Button onClick={() => {
+        setOpen(false);
+        setTaskName(props.taskInfo.name);
+        setTaskDesc(props.taskInfo.desc);
+        setTags(props.taskInfo.tags);
+        setTaskStatus(props.taskInfo.taskStatus);
+      }}>Cancel</Button>
+
+      <Button color='green' onClick={() => {
+        if (taskName === "") {
+          setIsError(true);
+          return;
+        }
+        setIsError(false);
+        console.log("Updating Task", taskStatus);
+        fetch(backend_uri + "updatetask", {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            _id: props.taskInfo._id,
+            name: taskName,
+            desc: taskDesc,
+            tags: tags,
+            taskStatus: taskStatus
+          })
+        })
+          .then(res => {
+            if (res.ok) {
+              console.log("Task Updated");
+              setOpen(false);
+              props.refreshCallback();
+            }
+            else {
+              console.log("Task Update Failed");
+            }
+          });
+      }}>
+        <Icon name='checkmark' /> Save
+      </Button>
+    </>
   return (
     <Modal
       onClose={() => setOpen(false)}
       onOpen={() => setOpen(true)}
       open={open}
-      trigger={
-        <Table.Row key={props.taskInfo.index}>
-          <Table.Cell>{props.taskInfo.name}</Table.Cell>
-          <Table.Cell>{props.taskInfo.desc}</Table.Cell>
-          <Table.Cell>
-            <div style={{ display: "flex", flexWrap: "wrap" }}>
-              {props.taskInfo.tags.map((tag) =>
-                <div style={{ padding: 2 }}>
-                  <Label color="blue" tag>{tag}</Label>
-                </div>
-              )}
-            </div>
-          </Table.Cell>
-          <Table.Cell>
-            {
-              (props.taskInfo.taskStatus === 'Not Started') ?
-                <Label color="red">{props.taskInfo.taskStatus}</Label>
-                : (props.taskInfo.taskStatus === 'In Progress') ?
-                  <Label color="orange">{props.taskInfo.taskStatus}</Label>
-                  :
-                  <Label color="green">{props.taskInfo.taskStatus}</Label>
-            }
-          </Table.Cell>
-        </Table.Row>
-      }
+      closeOnDimmerClick={false}
+      closeOnEscape={false}
+      trigger={trigger_element}
     >
-      <Modal.Header>Edit Task</Modal.Header>
+      <Modal.Header>{modalHeader}</Modal.Header>
       <Modal.Content>
         <Modal.Description>
-          <Header>Editing Task: {props.taskInfo.name}</Header>
-          <Form>
+          {modalContentHeader}
+          <Form error={isError}>
             <Form.Field>
               <label>Task Name</label>
               <input placeholder="Task Name" defaultValue={taskName} onChange={(e: any) => setTaskName(e.target.value)} />
@@ -98,7 +230,7 @@ const TaskRow = (props: { taskInfo: taskRowRep, tagSet: Array<string> }) => {
             <Form.Field>
               <label>Task Status</label>
               <Dropdown
-                placeholder='Select Friend'
+                placeholder='Select Status'
                 fluid
                 selection
                 options={statuses}
@@ -106,27 +238,22 @@ const TaskRow = (props: { taskInfo: taskRowRep, tagSet: Array<string> }) => {
                 onChange={(e: {}, { value }: any) => { setTaskStatus(value) }}
               />
             </Form.Field>
+            <Message
+              error
+              header='Error'
+              content='Ensure the task name is not empty!'
+            />
           </Form>
 
         </Modal.Description>
       </Modal.Content>
       <Modal.Actions>
-        <Button color='green'>
-          <Icon name='checkmark' /> Save
-        </Button>
-        <Button negative onClick={() => {
-          setOpen(false);
-          setTaskName(props.taskInfo.name);
-          setTaskDesc(props.taskInfo.desc);
-          setTags(props.taskInfo.tags);
-          setTaskStatus(props.taskInfo.taskStatus);
-        }}>Cancel</Button>
-
+        {modalActions}
       </Modal.Actions>
     </Modal>);
 }
-
-function SearchBox(props: { source: Array<searchBoxRep>, searchInDesc: boolean , updateValue: any}) {
+TaskRow.defaultProps = { isCreate: false, taskInfo: { _id: "", name: "", desc: "", tags: [], taskStatus: "Not Started" } };
+function SearchBox(props: { source: Array<searchBoxRep>, searchInDesc: boolean, updateValue: any }) {
   const initialState = {
     loading: false,
     results: [],
@@ -177,7 +304,7 @@ function SearchBox(props: { source: Array<searchBoxRep>, searchInDesc: boolean ,
     }
   }, [props.source])
 
-  useEffect(() => {props.updateValue(value)}, [value, props]);
+  useEffect(() => { props.updateValue(value) }, [value, props]);
 
   return (
     <Search
@@ -239,51 +366,64 @@ const TaskTable = () => {
   const [searchStatus, setSearchStatus] = useState<string>("");
 
   // Initial Set-Up, to replace with backend query
-  useEffect(() => {
+  const initialiseData = () => {
+    /*
     let initTasks: Array<taskRowRep> = [
-      { index: 1, name: 'Learn HTML', desc: "Create at least something", tags: ['Task 1.1', 'Task 1.2', "Brandon", "Hello", "hello"], taskStatus: "Not Started" },
-      { index: 2, name: 'Learn CSS', desc: "Create at least a stylesheet", tags: ['Task 2.1', 'Task 2.2'], taskStatus: "In Progress" },
-      { index: 3, name: 'Learn JAVASCRIPT', desc: "Create at least an APP", tags: ['Task 3.1', 'Task 3.2'], taskStatus: "Completed" },
-      { index: 4, name: 'Learn C++', desc: "Create at least a programme", tags: ['Task 3.1', 'Task 3.2'], taskStatus: "Completed" },
-      { index: 5, name: 'Learn Python', desc: "Create at least an AI", tags: ['Task 3.1', 'Task 3.2'], taskStatus: "Completed" },
-      { index: 6, name: 'Learn Haskell', desc: "Create at least a paper", tags: ['Task 3.1', 'Task 3.2'], taskStatus: "Completed" },
-      { index: 7, name: 'Learn C#', desc: "Create at least an game", tags: ['Task 3.1', 'Task 3.2'], taskStatus: "Completed" },
-    ];
+      { _id: "1", name: 'Learn HTML', desc: "Create at least something", tags: ['Task 1.1', 'Task 1.2', "Brandon", "Hello", "hello"], taskStatus: "Not Started" },
+      { _id: "2", name: 'Learn CSS', desc: "Create at least a stylesheet", tags: ['Task 2.1', 'Task 2.2'], taskStatus: "In Progress" },
+      { _id: "3", name: 'Learn JAVASCRIPT', desc: "Create at least an APP", tags: ['Task 3.1', 'Task 3.2'], taskStatus: "Completed" },
+      { _id: "4", name: 'Learn C++', desc: "Create at least a programme", tags: ['Task 3.1', 'Task 3.2'], taskStatus: "Completed" },
+      { _id: "5", name: 'Learn Python', desc: "Create at least an AI", tags: ['Task 3.1', 'Task 3.2'], taskStatus: "Completed" },
+      { _id: "6", name: 'Learn Haskell', desc: "Create at least a paper", tags: ['Task 3.1', 'Task 3.2'], taskStatus: "Completed" },
+      { _id: "7", name: 'Learn C#', desc: "Create at least an game", tags: ['Task 3.1', 'Task 3.2'], taskStatus: "Completed" },
+    ];*/
 
-    // Initialise States
-    dispatch({ type: 'RESET', payload: initTasks });
-    setBackupData(initTasks);
-    // Convert to SearchBox format {index, title, description, tags, taskStatus}
-    var initSearchData: Array<searchBoxRep> =
-      initTasks.map((task) => { return { index: task.index, title: task.name, description: task.desc, tags: task.tags, taskStatus: task.taskStatus } });
-    setSearchData(initSearchData);
+    const requestOptions = {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    };
+    fetch(backend_uri + "getdata", requestOptions)
+      .then(response => response.json())
+      .then(initTasks => {
+        console.log("initTasks: ", initTasks);
+        // Initialise States
+        dispatch({ type: 'RESET', payload: initTasks });
+        setBackupData(initTasks);
+        // Convert to SearchBox format {index, title, description, tags, taskStatus}
+        var initSearchData: Array<searchBoxRep> =
+          initTasks.map((task: taskRowRep) => { return { _id: task._id, title: task.name, description: task.desc, tags: task.tags, taskStatus: task.taskStatus } });
+        setSearchData(initSearchData);
 
-    let initTagSet = new Array<string>();
-    initTasks.forEach(task => {
-      task.tags.forEach(tag => {
-        initTagSet.push(tag);
+        let initTagSet = new Array<string>();
+        initTasks.forEach((task: taskRowRep) => {
+          task.tags.forEach(tag => {
+            initTagSet.push(tag);
+          });
+        });
+        initTagSet = Array.from(new Set(initTagSet)); // Remove duplicates
+        initTagSet.sort((a, b) => {                   // Sort alphabetically
+          return (a.toLowerCase() > b.toLowerCase()) ? 1 : -1;
+        });
+
+        // Convert to Search Tag Dropdown Format {key, text, value}
+        var initsearchTagOptions = new Array<{ key: string, text: string, value: string }>();
+        initTagSet.forEach(tag => {
+          initsearchTagOptions.push({ key: tag, text: tag, value: tag });
+        });
+
+        setSearchTagOptions(initsearchTagOptions);
+        setTagSet(initTagSet);
       });
-    });
-    initTagSet = Array.from(new Set(initTagSet)); // Remove duplicates
-    initTagSet.sort((a, b) => {                   // Sort alphabetically
-      return (a.toLowerCase() > b.toLowerCase()) ? 1 : -1;
-    });
+  }
 
-    // Convert to Search Tag Dropdown Format {key, text, value}
-    var initsearchTagOptions = new Array<{ key: string, text: string, value: string }>();
-    initTagSet.forEach(tag => {
-      initsearchTagOptions.push({ key: tag, text: tag, value: tag });
-    });
-
-    setSearchTagOptions(initsearchTagOptions);
-    setTagSet(initTagSet);
-  }, []);
+  useEffect(initialiseData, []);
 
   // ===== Handle Searching =====
   // Update Filters
+
   useEffect(() => {
     let newSearchOptions: Array<searchBoxRep> =
-      backupData.map((task: taskRowRep) => { return { index: task.index, title: task.name, description: task.desc, tags: task.tags, taskStatus: task.taskStatus } });
+      backupData.map((task: taskRowRep) => { return { _id: task._id, title: task.name, description: task.desc, tags: task.tags, taskStatus: task.taskStatus } });
 
     if (searchTags.length > 0) {
       newSearchOptions = newSearchOptions.filter(task => {
@@ -300,7 +440,7 @@ const TaskTable = () => {
     }
     setSearchData(newSearchOptions);
   }, [searchTags, searchStatus, backupData]);
-  
+
   const handleSubmit = () => {
     console.log("search term", searchField);
     let newData = backupData;
@@ -325,7 +465,7 @@ const TaskTable = () => {
       newData = newData.filter(task => {
         return task.taskStatus === searchStatus;
       });
-    } 
+    }
 
     dispatch({ type: 'RESET', payload: newData });
   }
@@ -333,51 +473,62 @@ const TaskTable = () => {
 
   return (
     <div>
-      <Segment>
+      <Grid stackable>
+        <Grid.Row stretched >
+          <Grid.Column width={14}>
+            <Segment>
+              <Form onSubmit={handleSubmit}>
+                <Form.Group inline>
 
-        <Form onSubmit={handleSubmit}>
-          <Form.Group inline>
+                  <label>Search</label>
+                  <div style={{ width: "40em" }}>
+                    <SearchBox
+                      key={JSON.stringify(searchData) + searchInDesc}
+                      source={searchData}
+                      searchInDesc={searchInDesc}
+                      updateValue={setSearchField} />
+                  </div>
 
-            <label>Search</label>
-            <div style={{ width: "40em" }}>
-              <SearchBox 
-              key={JSON.stringify(searchData) + searchInDesc}
-              source={searchData} 
-              searchInDesc={searchInDesc}
-              updateValue={setSearchField} />
-            </div>
+                  <div>&nbsp;&nbsp;</div>
+                  <div style={{ display: "flex", alignItems: "center" }}>
+                    <Form.Field  >
+                      <Checkbox label='Search in Descriptions' onChange={(e: any, d: any) => { setSearchInDesc(d.checked); }} />
+                    </Form.Field>
+                  </div>
 
-            <div>&nbsp;&nbsp;</div>
-            <div style={{ display: "flex", alignItems: "center" }}>
-              <Form.Field  >
-                <Checkbox label='Search in Descriptions' onChange={(e: any, d: any) => { setSearchInDesc(d.checked); }} />
-              </Form.Field>
-            </div>
-
-            <label>Filters</label>
-            <Dropdown
-              placeholder='Select Tags'
-              fluid
-              multiple
-              search
-              selection
-              onChange={(e: {}, { value }: any) => { setSearchTags(value); }}
-              options={searchTagOptions}
-            />
-            <div>&nbsp;&nbsp;</div>
-            <Dropdown
-              placeholder='Select Status'
-              clearable
-              selection
-              options={statuses}
-              onChange={(e: {}, { value }: any) => { setSearchStatus(value); }}
-            />
-            <div>&nbsp;&nbsp;</div>
-            <Form.Button content='Submit' />
-          </Form.Group>
-        </Form>
-      </Segment>
-      <Table celled selectable sortable fixed>
+                  <label>Filters</label>
+                  <Dropdown
+                    placeholder='Select Tags'
+                    fluid
+                    multiple
+                    search
+                    selection
+                    onChange={(e: {}, { value }: any) => { setSearchTags(value); }}
+                    options={searchTagOptions}
+                  />
+                  <div>&nbsp;&nbsp;</div>
+                  <Dropdown
+                    placeholder='Select Status'
+                    clearable
+                    selection
+                    options={statuses}
+                    onChange={(e: {}, { value }: any) => { setSearchStatus(value); }}
+                  />
+                  <div>&nbsp;&nbsp;</div>
+                  <Form.Button content='Submit' />
+                </Form.Group>
+              </Form>
+            </Segment>
+          </Grid.Column>
+          <Grid.Column width={2} >
+            <Segment style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+              &nbsp;&nbsp;
+              <TaskRow tagSet={tagSet} refreshCallback={initialiseData} isCreate={true} />
+            </Segment>
+          </Grid.Column>
+        </Grid.Row>
+      </Grid>
+      <Table celled selectable sortable>
         <Table.Header>
           <Table.Row>
             <Table.HeaderCell
@@ -386,28 +537,32 @@ const TaskTable = () => {
                 dispatch({ type: 'CHANGE_SORT', column: 'name' });
               }}
               key="name"
+              width={3}
             >Task Name</Table.HeaderCell>
             <Table.HeaderCell
               sorted={column === 'desc' ? direction : null}
               onClick={() => dispatch({ type: 'CHANGE_SORT', column: 'desc' })}
               key="desc"
+              width={7}
             >Task Description</Table.HeaderCell>
             <Table.HeaderCell
               sorted={column === 'tags' ? direction : null}
               onClick={() => dispatch({ type: 'CHANGE_SORT', column: 'tags' })}
               key="tags"
+              width={4}
             >Tags</Table.HeaderCell>
             <Table.HeaderCell
               sorted={column === 'taskStatus' ? direction : null}
               onClick={() => dispatch({ type: 'CHANGE_SORT', column: 'taskStatus' })}
               key="taskStatus"
+              width={2}
             >Completed</Table.HeaderCell>
           </Table.Row>
         </Table.Header>
 
         <Table.Body>
           {data.map((rowData: taskRowRep) =>
-            <TaskRow key={rowData.index} taskInfo={rowData} tagSet={tagSet}></TaskRow>
+            <TaskRow key={rowData._id} taskInfo={rowData} tagSet={tagSet} refreshCallback={initialiseData}></TaskRow>
           )}
         </Table.Body>
       </Table>

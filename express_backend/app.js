@@ -1,34 +1,44 @@
+/**Express Backend Server
+ * This sever connects to the mongodb database via mongoose and responds to requests via express.
+ */
 const express = require('express');
 const mongoose = require("mongoose");
+const cors = require('cors');
+const bodyParser = require('body-parser');
+const jsonParser = bodyParser.json()
 mongoose.set('debug', true);
 
 // Connect to DB
 mongoose.connect('mongodb://localhost:27017/ToDoDB', { useNewUrlParser: true, useUnifiedTopology: true });
 const taskSchema = new mongoose.Schema({
-    index: Number,
     name: String,
     desc: String,
     tags: [String],
-    taskStatus: String,
+    taskStatus: String
 }, { collection : 'user_tasks' }); 
 const Task = mongoose.model('Task', taskSchema);
 
+// Set up express
 const app = express();
-const port = 8000;
+app.use(cors());
+const port = 3000;
 
 // Initial Testing Tasks
+/*
 let initTasks = [
-    { index: 1, name: 'Learn HTML', desc: "Create at least something", tags: ['Task 1.1', 'Task 1.2', "Brandon", "Hello", "hello"], taskStatus: "Not Started" },
-    { index: 2, name: 'Learn CSS', desc: "Create at least a stylesheet", tags: ['Task 2.1', 'Task 2.2'], taskStatus: "In Progress" },
-    { index: 3, name: 'Learn JAVASCRIPT', desc: "Create at least an APP", tags: ['Task 3.1', 'Task 3.2'], taskStatus: "Completed" },
-    { index: 4, name: 'Learn C++', desc: "Create at least a programme", tags: ['Task 3.1', 'Task 3.2'], taskStatus: "Completed" },
-    { index: 5, name: 'Learn Python', desc: "Create at least an AI", tags: ['Task 3.1', 'Task 3.2'], taskStatus: "Completed" },
-    { index: 6, name: 'Learn Haskell', desc: "Create at least a paper", tags: ['Task 3.1', 'Task 3.2'], taskStatus: "Completed" },
-    { index: 7, name: 'Learn C#', desc: "Create at least an game", tags: ['Task 3.1', 'Task 3.2'], taskStatus: "Completed" },
-  ];
+    { name: 'Learn HTML', desc: "Create at least something", tags: ['Task 1.1', 'Task 1.2', "Brandon", "Hello", "hello"], taskStatus: "Not Started" },
+    { name: 'Learn CSS', desc: "Create at least a stylesheet", tags: ['Task 2.1', 'Task 2.2'], taskStatus: "In Progress" },
+    { name: 'Learn JAVASCRIPT', desc: "Create at least an APP", tags: ['Task 3.1', 'Task 3.2'], taskStatus: "Completed" },
+    { name: 'Learn C++', desc: "Create at least a programme", tags: ['Task 3.1', 'Task 3.2'], taskStatus: "Completed" },
+    { name: 'Learn Python', desc: "Create at least an AI", tags: ['Task 3.1', 'Task 3.2'], taskStatus: "Completed" },
+    { name: 'Learn Haskell', desc: "Create at least a paper", tags: ['Task 3.1', 'Task 3.2'], taskStatus: "Completed" },
+    { name: 'Learn C#', desc: "Create at least an game", tags: ['Task 3.1', 'Task 3.2'], taskStatus: "Completed" },
+  ];*/
 
+
+// Routes
 app.get('/', function (req, res) {
-    res.send('Hello World! This is the express backend');
+    res.send('Hello There! This is the express backend');
 });
 
 app.post('/getdata', async function (req, res) {
@@ -36,21 +46,36 @@ app.post('/getdata', async function (req, res) {
     res.send(Tasks);
 });
 
-app.post('/createtask', function (req, res) {
+app.post('/createtask', jsonParser, async function (req, res) {
     // Get task information from body
     let task = req.body;
+    await Task.create(task);
+    res.send("Task Created");
 });
 
-app.post('/updatetask', function (req, res) {
+app.post('/updatetask', jsonParser, async function (req, res) {
     // Get task information from body
-    let task = req.body;
+    // console.log("Updating task", req.body);
+    if (req.body.taskStatus === ""){
+        res.send("Task Status cannot be empty");
+        return;
+    }
+    if (req.body.name === ""){
+        res.send("Task Name cannot be empty");
+        return;
+    }
+    await Task.updateOne({ _id: req.body._id }, { $set: req.body });
+    res.send("Task Updated");
 });
 
-app.post('/deletetask', function (req, res) {
+app.post('/deletetask', jsonParser, async function (req, res) {
     // Get task information from body
-    let task = req.body;
+    await Task.deleteOne({ _id: req.body._id });
+    res.send("Task Deleted");
 });
 
+
+// Start server
 app.listen(port), () => {
     console.log(`Example app listening at http://localhost:${port}`);
 };
