@@ -5,6 +5,7 @@ const express = require('express');
 const mongoose = require("mongoose");
 const cors = require('cors');
 const bodyParser = require('body-parser');
+const path = require('path');
 const jsonParser = bodyParser.json()
 // mongoose.set('debug', true);
 
@@ -13,7 +14,7 @@ const db_url = "mongodb://localhost:27017/ToDoDB";
 const port = 2000;
 
 // Connect to DB
-mongoose.connect('db_url', { useNewUrlParser: true, useUnifiedTopology: true });
+mongoose.connect(db_url, { useNewUrlParser: true, useUnifiedTopology: true });
 const taskSchema = new mongoose.Schema({
     name: String,
     desc: String,
@@ -25,6 +26,7 @@ const Task = mongoose.model('Task', taskSchema);
 // Set up express
 const app = express();
 app.use(cors());
+app.use(express.static(path.join(__dirname, '..', 'react_app', 'build')));
 
 
 // Initial Testing Tasks
@@ -42,7 +44,7 @@ let initTasks = [
 
 // Routes
 app.get('/', async function (req, res) {
-    res.send('Hello There! This is the express backend');
+    res.sendFile(path.join(__dirname, '..', 'react_app', 'build', 'index.html'));
 });
 
 app.post('/getdata', async function (req, res) {
