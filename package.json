@@ -11,7 +11,7 @@
   },
   "scripts": {
     "start": "node index.js",
-    "heroku-postbuild": "cd react-app && npm install && npm run build",
+    "heroku-postbuild": "cd react-app && npm install && sed -i 's/;;/;/' node_modules/semantic-ui-css/semantic.min.css && npm run build",
     "manual-build-all": "npm install && npm run heroku-postbuild && npm run start"
   }
 }
