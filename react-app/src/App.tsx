@@ -305,6 +305,7 @@ function SearchBox(props: { source: Array<searchBoxRep>, searchInDesc: boolean, 
   useEffect(() => { props.updateValue(value) }, [value, props]);
 
   return (
+
     <Search
       fluid
       size='large'
@@ -473,52 +474,72 @@ const TaskTable = () => {
       <Grid stackable>
         <Grid.Row stretched >
           <Grid.Column width={14}>
-            <Segment>
-              <Form onSubmit={handleSubmit}>
-                <Form.Group inline>
+            <Segment style={{display: "flex", alignItems: "center"}}>
 
-                  <label>Search</label>
-                  <div style={{ width: "40em" }}>
-                    <SearchBox
-                      key={JSON.stringify(searchData) + searchInDesc}
-                      source={searchData}
-                      searchInDesc={searchInDesc}
-                      updateValue={setSearchField} />
-                  </div>
+              
+              <Form onSubmit={handleSubmit} style={{ width:"110%"}}>
+                <Grid stackable style={{ display: "flex", alignItems: "center" }}>
+                  <Grid.Column width={4} >
+                    <Grid stackable >
+                      <Grid.Column width={3} style={{ display: "flex", alignItems: "center", justifyContent:"center" }}>
+                        <b>Search</b>
+                      </Grid.Column>
+                      <Grid.Column width={13} >
+                        <SearchBox
+                          key={JSON.stringify(searchData) + searchInDesc}
+                          source={searchData}
+                          searchInDesc={searchInDesc}
+                          updateValue={setSearchField} />
+                      </Grid.Column>
+                    </Grid>
+                  </Grid.Column>
+                  <Grid.Column width={2} style={{ display: "flex", alignItems: "center" }}>
+                    <div style={{ display: "flex", alignItems: "center" }}>
+                      <Form.Field  >
+                        <Checkbox label='Search in Descriptions' onChange={(e: any, d: any) => { setSearchInDesc(d.checked); }} />
+                      </Form.Field>
+                    </div>
+                  </Grid.Column>
+                  <Grid.Column width={10} style={{ display: "flex", justifyContent: "center" }} >
 
-                  <div>&nbsp;&nbsp;</div>
-                  <div style={{ display: "flex", alignItems: "center" }}>
-                    <Form.Field  >
-                      <Checkbox label='Search in Descriptions' onChange={(e: any, d: any) => { setSearchInDesc(d.checked); }} />
-                    </Form.Field>
-                  </div>
+                    <Grid style={{ width: "110%" }} stackable>
+                      <Grid.Column width={2} style={{ display: "flex", alignItems: "center", justifyContent:"center" }}>
+                        <b>Filters</b>
+                      </Grid.Column>
+                      <Grid.Column width={7} style={{ display: "flex", alignItems: "center", }}>
+                        <Dropdown
+                          placeholder='Select Tags'
+                          multiple
+                          search
+                          fluid
+                          selection
+                          onChange={(e: {}, { value }: any) => { setSearchTags(value); }}
+                          options={searchTagOptions}
+                        />
+                      </Grid.Column>
 
-                  <label>Filters</label>
-                  <Dropdown
-                    placeholder='Select Tags'
-                    fluid
-                    multiple
-                    search
-                    selection
-                    onChange={(e: {}, { value }: any) => { setSearchTags(value); }}
-                    options={searchTagOptions}
-                  />
-                  <div>&nbsp;&nbsp;</div>
-                  <Dropdown
-                    placeholder='Select Status'
-                    clearable
-                    selection
-                    options={statuses}
-                    onChange={(e: {}, { value }: any) => { setSearchStatus(value); }}
-                  />
-                  <div>&nbsp;&nbsp;</div>
-                  <Form.Button content='Submit' />
-                </Form.Group>
+                      <Grid.Column width={4} style={{ display: "flex", alignItems: "center" }}>
+                        <Dropdown
+                          placeholder='Select Status'
+                          clearable
+                          selection
+                          fluid
+                          options={statuses}
+                          onChange={(e: {}, { value }: any) => { setSearchStatus(value); }}
+                        />
+                      </Grid.Column>
+                    <Grid.Column width={3} style={{ display: "flex", alignItems: "center", justifyContent: "center"}} >
+                    <Form.Button content='Submit' />
+                  </Grid.Column>
+                    </Grid>
+                  </Grid.Column>
+                  
+                </Grid>
               </Form>
             </Segment>
           </Grid.Column>
-          <Grid.Column width={2} >
-            <Segment style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+          <Grid.Column width={2}  >
+            <Segment style={{ display: "flex", justifyContent: "center", alignItems: "center" }} >
               &nbsp;&nbsp;
               <TaskRow tagSet={tagSet} refreshCallback={initialiseData} isCreate={true} />
             </Segment>
