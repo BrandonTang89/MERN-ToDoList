@@ -4,7 +4,6 @@ import { Label, Table, Segment, Modal, Header, Form, TextArea, Dropdown, Button,
 import _ from 'lodash';
 import 'semantic-ui-css/semantic.min.css'
 import './App.css';
-
 const backend_uri = "/api/";
 
 interface searchBoxRep { _id: string, title: string, description: string, tags: Array<string>, taskStatus: string };
@@ -469,7 +468,6 @@ const TaskTable = () => {
     dispatch({ type: 'RESET', payload: newData });
   }
 
-
   return (
     <div>
       <Grid stackable>
@@ -591,9 +589,7 @@ function App() {
 
   return (
     <div
-      style={{
-        padding: '3em',
-      }} >
+      className='App' >
       <Helmet>
         <style>{"body { background-color: #eddefa; }"}</style>
       </Helmet>

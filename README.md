@@ -7,7 +7,17 @@ This app aims to use modern web development technologies including React.js, Nod
 # Architecture
 The Express.js server acts as the back-end. The user requests for the React.js front-end page from the root of the
 express server.
-# Requirements
+
+# Running for Deployment
+To run the web application, we need to first define the environmental variables in a `.env` file
+```bash
+NODE_ENV = "staging"
+DB_URL = "{your own database URL}"
+```
+# Running for Development
+> You should still define the environmental variables as described above before running for development.
+
+## Requirements
 The project runs on the MERN stack, thus we require the following programmes
 - node.js
 - mongodb (community edition)
@@ -30,8 +40,11 @@ Within ```express_backend```
 - path
 - dotenv
 
-Note that you can install these using ```npm install package.json``` in the respective directories.
-# Running the Stack
+> Warning: <br>
+> With the current version of ```semantic-ui-css```, there exist a double `;;` within `react-app/node_modules/semantic-ui-css/semantic.min.css` that needs to be removed before it can important properly into the react project.
+
+Note that you can install these using `npm install package.json` in the respective directories.
+
 ## The Front-End
 From the ```react-app``` directory, 
 - run ```npm start``` to begin the development server.
