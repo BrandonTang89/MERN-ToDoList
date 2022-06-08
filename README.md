@@ -1,6 +1,6 @@
 # Modern To-Do App
 
-<img src="./react-app/public/logo.svg" alt="TODO Logo" width="300"/>
+<img src="./react_app/public/logo.svg" alt="TODO Logo" width="300"/>
 
 This app aims to use modern web development technologies including React.js, Node.js and MongoDB to develop a simple CRUD application.
 
@@ -27,7 +27,9 @@ Within ```express_backend```
 
 # Running the Stack
 ## Running the Front-End
-From the ```react-app``` directory, run ```npm build```
+From the ```react-app``` directory, 
+- run ```npm start``` to begin the development server.
+- run ```npm build``` to create an optimised production build, you can then run ```serve -s build``` to serve it.
 ## Running the Server
 From the ```express_backend``` directory, run ```node server.js```
 
@@ -35,8 +37,12 @@ From the ```express_backend``` directory, run ```node server.js```
 From the app's root directory, run with
 ```mongod --dbpath=./mongodb_data```
 
+Note that you need to make the directory ```./mongodb_data``` before starting the database.
+
 ### Initial Set-Up of DB
 We can connect to the DB using ```mongosh``` which will open a shell that automatically connects to the running ```mongod```.
+
+
 
 We set up using the following commands:
 ```bash

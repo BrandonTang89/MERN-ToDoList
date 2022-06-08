@@ -5,7 +5,7 @@ import _ from 'lodash';
 import 'semantic-ui-css/semantic.min.css'
 import './App.css';
 
-const backend_uri = "http://localhost:3000/";
+const backend_uri = "http://localhost:2000/";
 
 interface searchBoxRep { _id: string, title: string, description: string, tags: Array<string>, taskStatus: string };
 interface taskRowRep { _id: string, name: string, desc: string, tags: Array<string>, taskStatus: string }
@@ -22,7 +22,6 @@ const TagDropDown = (props: { tagSet: Array<string>, onChange: any, currentTags:
   const [options, setOptions] = useState(initOptions);
 
   const handleAddition = (e: {}, { value }: any) => {
-    console.log("hello", options);
     setOptions([{ key: value, text: value, value: value }, ...options]);
   }
   const handleChange = (e: {}, { value }: any) => { props.onChange(value); }
@@ -413,7 +412,8 @@ const TaskTable = () => {
 
         setSearchTagOptions(initsearchTagOptions);
         setTagSet(initTagSet);
-      });
+      })
+      .catch(error => console.log('Error Getting Data from Server: ', error));
   }
 
   useEffect(initialiseData, []);
@@ -442,7 +442,6 @@ const TaskTable = () => {
   }, [searchTags, searchStatus, backupData]);
 
   const handleSubmit = () => {
-    console.log("search term", searchField);
     let newData = backupData;
     if (searchField !== "") {
       newData = newData.filter(task => {
