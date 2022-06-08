@@ -4,11 +4,35 @@
 
 This app aims to use modern web development technologies including React.js, Node.js and MongoDB to develop a simple CRUD application.
 
+# Requirements
+The project runs on the MERN stack, thus we require the following programmes
+- node.js
+- mongodb (community edition)
+
+The specific node modules required are:
+
+Within ```react-app```
+- react
+- react-helmet
+- lodash
+- semantic-ui-react
+- semantic-ui-css
+
+Within ```express_backend```
+- express
+- mongoose
+- mongodb
+- cors
+- bodyParser
+
+# Running the Stack
+## Running the Front-End
+From the ```react-app``` directory, run ```npm build```
 ## Running the Server
-From the ```express_backend``` directory, run ```node app.js```
+From the ```express_backend``` directory, run ```node server.js```
 
 ## Running Mongodb
-From the App's root directory, run with
+From the app's root directory, run with
 ```mongod --dbpath=./mongodb_data```
 
 ### Initial Set-Up of DB
@@ -31,7 +55,7 @@ db.user_tasks.insertMany([
 ### Play Around With the Data
 ```bash
 db.user_tasks.updateOne(
-  {index: 7},
+  {name: "Learn C#"},
   { $set: { name: 'Learn C#', desc: "Create at least an game", tags: ['Task 3.1', 'Task 3.2'], taskStatus: "Not Started" }}
 ) # Updates task with index 7
 
