@@ -1,0 +1,29 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/react_app/node_modules
+/react_app/.pnp
+/react_app/.pnp.js
+
+# testing
+/react_app/coverage
+
+# production
+/react_app/build
+
+# misc
+/react_app/.DS_Store
+/react_app/.env.local
+/react_app/.env.development.local
+/react_app/.env.test.local
+/react_app/.env.production.local
+
+/react_app/npm-debug.log*
+/react_app/yarn-debug.log*
+/react_app/yarn-error.log*
+
+# Express Stuff
+/express_backend/node_modules
+
+# The actual DB Files
+/mongodb_data/*
