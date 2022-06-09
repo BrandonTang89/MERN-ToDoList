@@ -22,7 +22,7 @@ DB_URL = "mongodb://localhost:27017/ToDoDB"
 ```
 Following which, we can run a pre-defined script `npm run manual-build-all` that will install the required node packages, build the react project, then run the server. The default port is 5000 so we can visit the site at `localhost:5000`.
 # Running for Development
-> You should still define the environmental variables as described above before running for development.
+You still define the environmental variables as described above before running for development.
 
 ## Requirements
 The project runs on the MERN stack, thus we require the following programmes
