@@ -6,11 +6,39 @@ import 'semantic-ui-css/semantic.min.css'
 import './App.css';
 const backend_uri = "/api/";
 
-interface searchBoxRep { _id: string, title: string, description: string, tags: Array<string>, taskStatus: string };
+interface searchBoxRep { key: string, title: string, description: string, tags: Array<string>, taskStatus: string };
 interface taskRowRep { _id: string, name: string, desc: string, tags: Array<string>, taskStatus: string }
 const statuses = [{ key: "Not Started", text: "Not Started", value: "Not Started" },
 { key: "In Progress", text: "In Progress", value: "In Progress" },
 { key: "Completed", text: "Completed", value: "Completed" }];
+
+
+
+function getWindowDimensions() {
+  const { innerWidth: width, innerHeight: height } = window;
+  return {
+    width,
+    height
+  };
+}
+
+function useWindowDimensions() {
+  const [windowDimensions, setWindowDimensions] = useState(
+    getWindowDimensions()
+  );
+
+  useEffect(() => {
+    function handleResize() {
+      setWindowDimensions(getWindowDimensions());
+    }
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  return windowDimensions;
+}
+
 
 const TagDropDown = (props: { tagSet: Array<string>, onChange: any, currentTags: Array<string> }) => {
   let initOptions: Array<{ key: string, text: string, value: string }> = [];
@@ -39,7 +67,7 @@ const TagDropDown = (props: { tagSet: Array<string>, onChange: any, currentTags:
     />
   );
 }
-const TaskRow = (props: { taskInfo: taskRowRep, tagSet: Array<string>, refreshCallback: any, isCreate: boolean }) => {
+const TaskModal = (props: { taskInfo: taskRowRep, tagSet: Array<string>, refreshCallback: any, isCreate: boolean, children: React.ReactNode; }) => {
 
   const [open, setOpen] = useState<boolean>(false);
   const [taskName, setTaskName] = useState<string>(props.taskInfo.name);
@@ -50,34 +78,7 @@ const TaskRow = (props: { taskInfo: taskRowRep, tagSet: Array<string>, refreshCa
 
   const [isError, setIsError] = useState<boolean>(false);
 
-  let trigger_element = (!props.isCreate) ?
-    <Table.Row key={props.taskInfo._id}>
-      <Table.Cell>{props.taskInfo.name}</Table.Cell>
-      <Table.Cell>{props.taskInfo.desc}</Table.Cell>
-      <Table.Cell>
-        <div style={{ display: "flex", flexWrap: "wrap" }}>
-          {props.taskInfo.tags.map((tag) =>
-            <div style={{ padding: 2 }}>
-              <Label color="blue" tag>{tag}</Label>
-            </div>
-          )}
-        </div>
-      </Table.Cell>
-      <Table.Cell>
-        {
-          (props.taskInfo.taskStatus === 'Not Started') ?
-            <Label color="red">{props.taskInfo.taskStatus}</Label>
-            : (props.taskInfo.taskStatus === 'In Progress') ?
-              <Label color="orange">{props.taskInfo.taskStatus}</Label>
-              :
-              <Label color="green">{props.taskInfo.taskStatus}</Label>
-        }
-      </Table.Cell>
-    </Table.Row>
-    : <Button icon size='huge' labelPosition='left'>
-      <Icon name='plus circle'></Icon>Add
-    </Button>;
-
+  let trigger_element = props.children
   const modalHeader = (props.isCreate) ? "Add New Task" : "Edit Task";
   const modalContentHeader = (props.isCreate) ? null : <Header>Editing Task: {props.taskInfo.name}</Header>;
 
@@ -250,7 +251,7 @@ const TaskRow = (props: { taskInfo: taskRowRep, tagSet: Array<string>, refreshCa
       </Modal.Actions>
     </Modal>);
 }
-TaskRow.defaultProps = { isCreate: false, taskInfo: { _id: "", name: "", desc: "", tags: [], taskStatus: "Not Started" } };
+TaskModal.defaultProps = { isCreate: false, taskInfo: { _id: "", name: "", desc: "", tags: [], taskStatus: "Not Started" } };
 function SearchBox(props: { source: Array<searchBoxRep>, searchInDesc: boolean, updateValue: any }) {
   const initialState = {
     loading: false,
@@ -364,6 +365,10 @@ const TaskTable = () => {
   const [searchTags, setSearchTags] = useState<Array<string>>([]);
   const [searchStatus, setSearchStatus] = useState<string>("");
 
+  // Responsive Design
+  const { height, width } = useWindowDimensions();
+  const isSmall = width < 1540;
+
   // Initial Set-Up, to replace with backend query
   const initialiseData = () => {
     /*
@@ -423,7 +428,7 @@ const TaskTable = () => {
 
   useEffect(() => {
     let newSearchOptions: Array<searchBoxRep> =
-      backupData.map((task: taskRowRep) => { return { _id: task._id, title: task.name, description: task.desc, tags: task.tags, taskStatus: task.taskStatus } });
+      backupData.map((task: taskRowRep) => { return { key: task._id, title: task.name, description: task.desc, tags: task.tags, taskStatus: task.taskStatus } });
 
     if (searchTags.length > 0) {
       newSearchOptions = newSearchOptions.filter(task => {
@@ -469,22 +474,58 @@ const TaskTable = () => {
     dispatch({ type: 'RESET', payload: newData });
   }
 
+  // Responsive Layout
+  const [long_add, setLong_add] = useState(<></>);
+  const [short_add, setShort_add] = useState(<></>);
+  useEffect(() => {
+    if (isSmall) {
+      setLong_add(
+      <Grid.Row>
+            <Grid.Column>
+              <Segment style={{ display: "flex", justifyContent: "center", alignItems: "center" }} >
+                <TaskModal tagSet={tagSet} refreshCallback={initialiseData} isCreate={true}>
+                  <Button size='huge' fluid  >
+                    <Icon name='plus circle' className='addIcon' />
+                    Add Task
+                  </Button>
+                </TaskModal>
+              </Segment>
+            </Grid.Column>
+          </Grid.Row>);
+      setShort_add(<></>);
+    }
+    else{
+      setLong_add(<></>);
+      setShort_add(<Grid.Column width={2}>
+        <Segment style={{ display: "flex", justifyContent: "center", alignItems: "center" }} >
+          <TaskModal tagSet={tagSet} refreshCallback={initialiseData} isCreate={true}>
+            <Button size='huge' fluid  >
+              <Icon name='plus circle' className='addIcon' />
+              Add
+            </Button>
+          </TaskModal>
+        </Segment>
+      </Grid.Column>);
+    }
+  }, [isSmall]);
   return (
     <div>
-      <Grid stackable>
+      {/*{width}, {height}, {isSmall ? "Small" : "Large"}*/}
+      <Grid stackable columns='equal'>
         <Grid.Row stretched >
-          <Grid.Column width={14}>
-            <Segment style={{display: "flex", alignItems: "center"}}>
 
-              
-              <Form onSubmit={handleSubmit} style={{ width:"110%"}}>
-                <Grid stackable style={{ display: "flex", alignItems: "center" }}>
-                  <Grid.Column width={4} >
-                    <Grid stackable >
-                      <Grid.Column width={3} style={{ display: "flex", alignItems: "center", justifyContent:"center" }}>
+          <Grid.Column>
+            <Segment style={{ display: "flex", alignItems: "center" }}>
+
+
+              <Form onSubmit={handleSubmit} style={{ width: "100%" }}>
+                <Grid stackable columns='equal' style={{ display: "flex", alignItems: "center" }}>
+                  <Grid.Column>
+                    <Grid stackable columns='equal' >
+                      <Grid.Column width={3} style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
                         <b>Search</b>
                       </Grid.Column>
-                      <Grid.Column width={13} >
+                      <Grid.Column style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
                         <SearchBox
                           key={JSON.stringify(searchData) + searchInDesc}
                           source={searchData}
@@ -493,17 +534,15 @@ const TaskTable = () => {
                       </Grid.Column>
                     </Grid>
                   </Grid.Column>
-                  <Grid.Column width={2} style={{ display: "flex", alignItems: "center" }}>
-                    <div style={{ display: "flex", alignItems: "center" }}>
+                  <Grid.Column tablet={5} computer={2} style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+
                       <Form.Field  >
                         <Checkbox label='Search in Descriptions' onChange={(e: any, d: any) => { setSearchInDesc(d.checked); }} />
                       </Form.Field>
-                    </div>
                   </Grid.Column>
-                  <Grid.Column width={10} style={{ display: "flex", justifyContent: "center" }} >
-
+                  <Grid.Column computer={9} tablet={16} style={{ display: "flex", justifyContent: "center" }} >
                     <Grid style={{ width: "110%" }} stackable>
-                      <Grid.Column width={2} style={{ display: "flex", alignItems: "center", justifyContent:"center" }}>
+                      <Grid.Column width={2} style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
                         <b>Filters</b>
                       </Grid.Column>
                       <Grid.Column width={7} style={{ display: "flex", alignItems: "center", }}>
@@ -528,23 +567,22 @@ const TaskTable = () => {
                           onChange={(e: {}, { value }: any) => { setSearchStatus(value); }}
                         />
                       </Grid.Column>
-                    <Grid.Column width={3} style={{ display: "flex", alignItems: "center", justifyContent: "center"}} >
-                    <Form.Button content='Submit' />
-                  </Grid.Column>
+                      <Grid.Column width={3} style={{ display: "flex", alignItems: "center", justifyContent: "center" }} >
+                        <Form.Button fluid content='Submit' />
+                      </Grid.Column>
                     </Grid>
                   </Grid.Column>
-                  
+
                 </Grid>
               </Form>
             </Segment>
           </Grid.Column>
-          <Grid.Column width={2}  >
-            <Segment style={{ display: "flex", justifyContent: "center", alignItems: "center" }} >
-              &nbsp;&nbsp;
-              <TaskRow tagSet={tagSet} refreshCallback={initialiseData} isCreate={true} />
-            </Segment>
-          </Grid.Column>
+          {short_add}
         </Grid.Row>
+        {long_add}
+
+
+
       </Grid>
       <Table celled selectable sortable>
         <Table.Header>
@@ -580,7 +618,31 @@ const TaskTable = () => {
 
         <Table.Body>
           {data.map((rowData: taskRowRep) =>
-            <TaskRow key={rowData._id} taskInfo={rowData} tagSet={tagSet} refreshCallback={initialiseData}></TaskRow>
+            <TaskModal key={rowData._id} taskInfo={rowData} tagSet={tagSet} refreshCallback={initialiseData}>
+              <Table.Row key={rowData._id}>
+                <Table.Cell>{rowData.name}</Table.Cell>
+                <Table.Cell>{rowData.desc}</Table.Cell>
+                <Table.Cell>
+                  <div style={{ display: "flex", flexWrap: "wrap" }}>
+                    {rowData.tags.map((tag) =>
+                      <div style={{ padding: 2 }}>
+                        <Label color="blue" tag>{tag}</Label>
+                      </div>
+                    )}
+                  </div>
+                </Table.Cell>
+                <Table.Cell>
+                  {
+                    (rowData.taskStatus === 'Not Started') ?
+                      <Label color="red">{rowData.taskStatus}</Label>
+                      : (rowData.taskStatus === 'In Progress') ?
+                        <Label color="orange">{rowData.taskStatus}</Label>
+                        :
+                        <Label color="green">{rowData.taskStatus}</Label>
+                  }
+                </Table.Cell>
+              </Table.Row>
+            </TaskModal>
           )}
         </Table.Body>
       </Table>
