@@ -1,4 +1,4 @@
-# Modern To-Do App
+# Modern MERN To-Do App
 
 <img src="./react-app/public/logo.svg" alt="TODO Logo" width="300"/>
 
