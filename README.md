@@ -48,7 +48,7 @@ Within ```react-app```
 - semantic-ui-css
 
 > Warning: <br>
-> With the current version of ```semantic-ui-css@2.4.1```, there exist a double `;;` within `react-app/node_modules/semantic-ui-css/semantic.min.css` that needs to be removed before it can important properly into the react project.
+> With the current version of ```semantic-ui-css@2.4.1```, there exist a double `;;` within `react-app/node_modules/semantic-ui-css/semantic.min.css` that needs to be removed before it can be imported into the react project.
 
 Note that you can install these using `npm install package.json` in the respective directories.
 
