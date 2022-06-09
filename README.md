@@ -10,7 +10,7 @@ An Express.js server acts as the back-end. The client requests for the React.js 
 
 The Express.js server uses the Mongoose library to connect with the MongoDB database, allowing it to perform CRUD operations.
 
-<img src="./Documentation/architecture_diagram2.svg" alt="TODO Logo" width="75%"/>
+<img src="./Documentation/architecture_diagram.svg" alt="TODO Logo" width="75%"/>
 
 For my deployment, the MongoDB instance is hosted on MongoDB Atlas while the Express.js server runs on Heroku.
 
