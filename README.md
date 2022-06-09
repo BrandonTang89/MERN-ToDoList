@@ -31,14 +31,7 @@ The project runs on the MERN stack, thus we require the following programmes
 
 The specific node modules required are:
 
-Within ```react-app```
-- react
-- react-helmet
-- lodash
-- semantic-ui-react
-- semantic-ui-css
-
-Within ```express_backend```
+Within the root directory
 - express
 - mongoose
 - mongodb
@@ -46,6 +39,13 @@ Within ```express_backend```
 - bodyParser
 - path
 - dotenv
+
+Within ```react-app```
+- react
+- react-helmet
+- lodash
+- semantic-ui-react
+- semantic-ui-css
 
 > Warning: <br>
 > With the current version of ```semantic-ui-css@2.4.1```, there exist a double `;;` within `react-app/node_modules/semantic-ui-css/semantic.min.css` that needs to be removed before it can important properly into the react project.
