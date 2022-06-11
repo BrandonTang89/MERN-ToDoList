@@ -26,7 +26,7 @@ You still define the environmental variables as described above before running f
 
 ## Requirements
 The project runs on the MERN stack, thus we require the following programmes
-- node.js
+- node.js (v16.15.1+)
 - mongodb
 
 The specific node modules required are:
