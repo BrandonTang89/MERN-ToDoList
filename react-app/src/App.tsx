@@ -507,7 +507,7 @@ const TaskTable = () => {
         </Segment>
       </Grid.Column>);
     }
-  }, [isSmall]);
+  }, [isSmall, tagSet]);
   return (
     <div>
       {/*{width}, {height}, {isSmall ? "Small" : "Large"}*/}
